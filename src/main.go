@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -23,12 +25,24 @@ type ResultResponse struct {
 var posts []BlogPost
 
 func main() {
+	fs := http.FileServer(http.Dir("/home/robtmayo/golang-work/blog/static"))
 	mux := http.NewServeMux()
 	mux.HandleFunc("/posts", postsHandler)
 	mux.HandleFunc("/new/post", newPostHandler)
 	mux.HandleFunc("/post/", getSinglePostHandler)
-	http.Handle("/", http.FileServer(http.Dir("/home/robtmayo/golang-work/blog/static")))
+	mux.HandleFunc("/", serveIndex)
+	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.ListenAndServe(":8000", mux)
+}
+
+func serveIndex(w http.ResponseWriter, r *http.Request) {
+	f, err := os.Open("/home/robtmayo/golang-work/blog/index.html")
+	if err != nil {
+		fmt.Fprintf(w, "%v", err)
+		return
+	}
+	defer f.Close()
+	io.Copy(w, f)
 }
 
 func mess() {
