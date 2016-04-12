@@ -27,9 +27,9 @@ var posts []BlogPost
 func main() {
 	fs := http.FileServer(http.Dir("/home/robtmayo/golang-work/blog/static"))
 	mux := http.NewServeMux()
-	mux.HandleFunc("/posts", postsHandler)
-	mux.HandleFunc("/new/post", newPostHandler)
-	mux.HandleFunc("/post/", getSinglePostHandler)
+	mux.HandleFunc("/api/posts", postsHandler)
+	mux.HandleFunc("/api/new/post", newPostHandler)
+	mux.HandleFunc("/api/post/", getSinglePostHandler)
 	mux.HandleFunc("/", serveIndex)
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.ListenAndServe(":8000", mux)
@@ -66,14 +66,14 @@ func getSinglePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("%v %d %s", parts, len(parts), r.URL.Path)
 	responseStruct := ResultResponse{Error: "", Ok: true}
-	if len(parts) < 2 {
+	if len(parts) < 3 {
 		responseStruct.Error = "Missing Id"
 		responseStruct.Ok = false
 		s, _ := json.Marshal(responseStruct)
 		fmt.Fprintf(w, "%s", s)
 		return
 	}
-	id, err := strconv.Atoi(parts[1])
+	id, err := strconv.Atoi(parts[2])
 	if err != nil {
 		responseStruct.Error = "No Post Found"
 		responseStruct.Ok = false
